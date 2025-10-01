@@ -73,7 +73,7 @@ storage3==0.12.1
 StrEnum==0.4.15
 supabase==2.18.0
 supafunc==0.10.1
-tensorboard==2.16.2
+tensorboard==2.18.0
 tensorboard-data-server==0.7.2
 tensorflow==2.18.0
 #tensorflow-intel==2.16.1
@@ -92,5 +92,6 @@ wheel==0.45.1
 wrapt==1.17.2
 
 #gunicorn==21.2.0
+
 
 
