@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Campaigns - DUT Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #005a9c;
+        --background-color: #f4f7f6;
+        --card-background-color: #ffffff;
+        --sidebar-background-color: #ffffff;
+        --text-color: #333333;
+        --label-color: #555555;
+        --input-border-color: #dddddd;
+        --button-hover-color: #004a80;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --danger-hover-color: #c82333;
+        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+        --border-radius: 8px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--background-color);
+        margin: 0;
+        display: flex;
+        color: var(--label-color);
+      }
+      .sidebar {
+        width: 260px;
+        background: var(--sidebar-background-color);
+        padding: 1.5rem;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      .sidebar-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--input-border-color);
+      }
+      .sidebar-logo {
+        max-width: 70px;
+        margin-bottom: 10px;
+      }
+      .sidebar-brand {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-decoration: none;
+      }
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-grow: 1;
+      }
+      .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        color: var(--label-color);
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        transition: all 0.3s;
+      }
+      .nav-item a:hover {
+        background-color: #eaf2fa;
+        color: var(--primary-color);
+      }
+      .nav-item a.active {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .nav-item a i {
+        font-size: 1.2rem;
+        width: 20px;
+        text-align: center;
+      }
+      .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #fbebee;
+        color: var(--danger-color);
+        border: none;
+        width: 100%;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        font-family: "Poppins", sans-serif;
+        transition: background-color 0.3s;
+      }
+      .logout-btn:hover {
+        background-color: #f8d7da;
+      }
+      .main-content {
+        flex-grow: 1;
+        padding: 2.5rem;
+        overflow-y: auto;
+      }
+      .page-header {
+        margin-bottom: 2rem;
+      }
+      .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-color);
+      }
+      .card {
+        background-color: var(--card-background-color);
+        padding: 1.75rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+      }
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+      }
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+      .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+      }
+      .form-select,
+      .form-input,
+      .form-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+        font-family: "Poppins", sans-serif;
+        font-size: 1rem;
+      }
+      .btn {
+        padding: 12px 1.5rem;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn:disabled {
+        background-color: #ccc !important;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: var(--primary-color);
+        color: white;
+      }
+      .btn-light {
+        background: #f8f9fa;
+        color: #495057;
+      }
+      .btn-light:hover {
+        background: #e9ecef;
+      }
+      .btn-success {
+        background: var(--success-color);
+        color: white;
+      }
+      .btn-sm {
+        padding: 8px 12px;
+        font-size: 0.875rem;
+      }
+      .question-builder {
+        border: 1px dashed var(--input-border-color);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+      .question-block {
+        border-bottom: 1px solid var(--input-border-color);
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+      }
+      .question-block:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .status-message {
+        margin-top: 1.25rem;
+        font-weight: 500;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        display: none;
+        border-left: 5px solid;
+      }
+      .status-message.success {
+        background-color: #e9f7ec;
+        color: var(--success-color);
+        border-color: var(--success-color);
+        display: block;
+      }
+      .status-message.error {
+        background-color: #fcebec;
+        color: var(--danger-color);
+        border-color: var(--danger-color);
+        display: block;
+      }
+      .campaign-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .campaign-item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+      }
+      .campaign-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .campaign-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-color);
+      }
+      .campaign-meta {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+      .campaign-status {
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        text-transform: capitalize;
+      }
+      .campaign-status.Sending,
+      .campaign-status.Sent {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+      .campaign-status.COMPLETED {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+      .campaign-status.Failed {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+      .campaign-details-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+        border: 1px solid var(--input-border-color);
+        border-top: none;
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+        padding: 0 1.5rem;
+        background-color: #fafbff;
+      }
+      .campaign-item-header.open + .campaign-details-content {
+        max-height: 2000px;
+        padding: 1.5rem;
+      }
+      .details-section {
+        margin-bottom: 1.5rem;
+      }
+      .details-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+      }
+      .correct-answer-options label {
+        margin-right: 15px;
+      }
+      .response-item {
+        margin-bottom: 1.25rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px dashed var(--input-border-color);
+      }
+      .response-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .response-student-header {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+      }
+      .response-qa-block {
+        margin-left: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .response-question {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.95em;
+      }
+      .response-answer {
+        margin-left: 1rem;
+        font-style: italic;
+        color: var(--label-color);
+        white-space: pre-wrap;
+      }
+      .campaign-filter {
+        margin-bottom: 1.5rem;
+      }
+      .filter-select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        background-color: white;
+        font-family: "Poppins", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img
+          src="/static/images/DUTLOGO.jpeg"
+          alt="DUT Logo"
+          class="sidebar-logo"
+        />
+        <a href="/dashboard" class="sidebar-brand">DUT Attendance</a>
+      </div>
+      <ul class="sidebar-nav">
+        <li class="nav-item">
+          <a href="/dashboard"
+            ><i class="fas fa-chart-pie"></i><span>Dashboard</span></a
+          >
+        </li>
+        <li class="nav-item">
+          <a href="/manage-schedule"
+            ><i class="fas fa-calendar-alt"></i><span>Manage Schedule</span></a
+          >
+        </li>
+        <li class="nav-item">
+          <a href="/manage-campaigns" class="active"
+            ><i class="fas fa-gift"></i><span>Attend & Win</span></a
+          >
+        </li>
+        <li class="nav-item">
+          <a href="/manage-submissions"
+            ><i class="fas fa-file-import"></i><span>Submissions</span></a
+          >
+        </li>
+      </ul>
+      <button id="logout-btn" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title">Attend & Win Campaigns</h1>
+      </header>
+
+      <div class="card">
+        <h3 class="card-title">Create a New Campaign</h3>
+        <form id="campaign-form">
+          <div class="form-group">
+            <label for="campaign-type" class="form-label"
+              >1. Choose Campaign Type</label
+            >
+            <select
+              class="form-select"
+              id="campaign-type"
+              name="campaign_type"
+              required
+            >
+              <option value="WEEKLY_QUIZ">
+                Weekly Progress Quiz (Identified)
+              </option>
+              <option value="FEEDBACK_SURVEY">
+                Lecturer Feedback Survey (Anonymous)
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">2. Build Your Form</label>
+            <div id="question-container" class="question-builder"></div>
+            <button
+              type="button"
+              id="add-question-btn"
+              class="btn btn-light"
+              style="margin-top: 1rem"
+            >
+              <i class="fas fa-plus"></i> Add Question
+            </button>
+          </div>
+          <button type="submit" id="submit-btn" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i> Create & Send Campaign
+          </button>
+        </form>
+        <div id="status-message" class="status-message"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Active & Past Campaigns</h3>
+        <div class="campaign-filter">
+          <select id="campaign-filter" class="filter-select">
+            <option value="all">All Campaigns</option>
+            <option value="sent">Sent Campaigns</option>
+            <option value="completed">Completed Campaigns</option>
+          </select>
+        </div>
+        <div id="campaign-list-container"><p>Loading campaigns...</p></div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+          const SUPABASE_URL = '{{ supabase_url }}';
+          const SUPABASE_ANON_KEY = '{{ supabase_key }}';
+          let supabaseClient;
+          {% raw %}
+          if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes('{{')) {
+              console.error("Supabase keys not passed properly."); return;
+          }
+          {% endraw %}
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+          const campaignForm = document.getElementById('campaign-form');
+          const statusDiv = document.getElementById('status-message');
+          const campaignListContainer = document.getElementById('campaign-list-container');
+          const addQuestionBtn = document.getElementById('add-question-btn');
+          const questionContainer = document.getElementById('question-container');
+          const campaignTypeSelect = document.getElementById('campaign-type');
+          const submitBtn = document.getElementById('submit-btn');
+          const campaignFilter = document.getElementById('campaign-filter');
+          let questionCount = 0;
+          let allCampaigns = [];
+
+          async function authenticatedFetch(endpoint, options = {}) {
+              const { data: { session } } = await supabaseClient.auth.getSession();
+              if (!session) { window.location.href = '/login'; throw new Error('User not authenticated.'); }
+              const config = { ...options, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}`, ...options.headers } };
+              const response = await fetch(endpoint, config);
+              const result = await response.json();
+              if (!response.ok) { throw new Error(result.error || 'An unknown server error occurred.'); }
+              return result;
+          }
+
+          function addQuestion() {
+              questionCount++;
+              const questionBlock = document.createElement('div');
+              questionBlock.className = 'question-block';
+              questionBlock.id = `q-block-${questionCount}`;
+              const isQuiz = campaignTypeSelect.value === 'WEEKLY_QUIZ';
+              const questionTypeDropdownHtml = isQuiz
+                  ? `<select name="q-type-${questionCount}" class="form-select" disabled><option value="multiple_choice" selected>Multiple Choice</option></select><input type="hidden" name="q-type-${questionCount}" value="multiple_choice">`
+                  : `<select name="q-type-${questionCount}" class="form-select" onchange="toggleOptionsInput(this, ${questionCount})"><option value="open_text">Open Text</option><option value="multiple_choice">Multiple Choice</option></select>`;
+
+              questionBlock.innerHTML = `
+                  <div class="question-header">
+                      <strong>Question ${questionCount}</strong>
+                      <button type="button" class="btn btn-light btn-sm" onclick="removeQuestion(${questionCount})"><i class="fas fa-trash"></i></button>
+                  </div>
+                  <div class="form-group"><input type="text" name="q-text-${questionCount}" class="form-input" placeholder="Enter your question text" required></div>
+                  <div class="form-group">${questionTypeDropdownHtml}</div>
+                  <div class="form-group" id="q-options-container-${questionCount}" style="display: none;">
+                      <label class="form-label">Options (comma-separated)</label>
+                      <input type="text" name="q-options-${questionCount}" class="form-input" placeholder="e.g., Option 1, Option 2, Option 3" onkeyup="renderCorrectAnswerOptions(${questionCount})">
+                      <div class="correct-answer-options" id="q-correct-answer-container-${questionCount}"></div>
+                  </div>`;
+              questionContainer.appendChild(questionBlock);
+              if (isQuiz) {
+                  toggleOptionsInput({ value: 'multiple_choice' }, questionCount);
+              }
+          }
+
+          window.renderCorrectAnswerOptions = (id) => {
+              const optionsInput = document.querySelector(`[name="q-options-${id}"]`);
+              const container = document.getElementById(`q-correct-answer-container-${id}`);
+              const options = optionsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+              if (options.length > 0) {
+                  container.innerHTML = '<label class="form-label" style="margin-top:0.5rem; margin-bottom:0.5rem;">Select Correct Answer:</label><br>';
+                  options.forEach((opt) => {
+                      const encodedOpt = encodeURIComponent(opt);
+                      container.innerHTML += `<label><input type="radio" name="q-correct-answer-${id}" value="${encodedOpt}" required> ${opt}</label>`;
+                  });
+              } else {
+                  container.innerHTML = '';
+              }
+          };
+
+          window.removeQuestion = (id) => { document.getElementById(`q-block-${id}`).remove(); };
+          window.toggleOptionsInput = (selectElement, id) => {
+              const optionsContainer = document.getElementById(`q-options-container-${id}`);
+              optionsContainer.style.display = selectElement.value === 'multiple_choice' ? 'block' : 'none';
+              if (selectElement.value !== 'multiple_choice') {
+                  document.getElementById(`q-correct-answer-container-${id}`).innerHTML = '';
+              }
+          };
+
+          campaignTypeSelect.addEventListener('change', () => {
+              questionContainer.innerHTML = '';
+              questionCount = 0;
+              addQuestion();
+          });
+
+          addQuestionBtn.addEventListener('click', addQuestion);
+          addQuestion();
+
+          campaignForm.addEventListener('submit', async (event) => {
+              event.preventDefault();
+              statusDiv.className = 'status-message';
+              statusDiv.textContent = 'Creating campaign...';
+
+              // Disable the submit button to prevent multiple submissions
+              submitBtn.disabled = true;
+              submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+              const formData = new FormData(campaignForm);
+              const campaignData = {
+                  campaign_type: formData.get('campaign_type'),
+                  questions: []
+              };
+              document.querySelectorAll('.question-block').forEach(block => {
+                  const id = block.id.split('-')[2];
+                  const questionType = formData.get(`q-type-${id}`);
+                  const correctAnswerRadio = document.querySelector(`input[name="q-correct-answer-${id}"]:checked`);
+                  const question = {
+                      text: formData.get(`q-text-${id}`),
+                      type: questionType,
+                      options: questionType === 'multiple_choice' ? formData.get(`q-options-${id}`).split(',').map(s => s.trim()) : [],
+                      correct_answer: correctAnswerRadio ? decodeURIComponent(correctAnswerRadio.value) : null
+                  };
+                  campaignData.questions.push(question);
+              });
+              try {
+                  const result = await authenticatedFetch('/api/create-campaign', {
+                      method: 'POST',
+                      body: JSON.stringify(campaignData)
+                  });
+                  statusDiv.textContent = result.message;
+                  statusDiv.className = 'status-message success';
+                  campaignForm.reset();
+                  questionContainer.innerHTML = '';
+                  addQuestion();
+                  fetchAndDisplayCampaigns();
+              } catch (err) {
+                  statusDiv.textContent = `Error: ${err.message}`;
+                  statusDiv.className = 'status-message error';
+              } finally {
+                  // Re-enable the submit button
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Create & Send Campaign';
+              }
+          });
+
+          function filterCampaigns(campaigns, filter) {
+              if (filter === 'all') return campaigns;
+              return campaigns.filter(campaign => {
+                  if (filter === 'sent') {
+                      return campaign.status === 'Sent' || campaign.status === 'Sending';
+                  } else if (filter === 'completed') {
+                      return campaign.status === 'COMPLETED';
+                  }
+                  return true;
+              });
+          }
+
+          function displayCampaigns(campaigns) {
+              if (campaigns.length === 0) {
+                  campaignListContainer.innerHTML = '<p>No campaigns found.</p>';
+                  return;
+              }
+
+              campaignListContainer.innerHTML = '<div class="campaign-accordion"></div>';
+              const accordion = campaignListContainer.querySelector('.campaign-accordion');
+
+              campaigns.forEach(campaign => {
+                  const item = document.createElement('div');
+                  item.className = 'campaign-item';
+                  const participantCount = campaign.campaign_participants[0]?.count || 0;
+
+                  let responsesHtml = '<p>No responses yet.</p>';
+                  if (campaign.campaign_responses.length > 0) {
+                      responsesHtml = campaign.campaign_responses.map(response => {
+                          const studentIdentifier = campaign.is_anonymous ? 'Anonymous' : (response.students?.full_name || 'Unknown');
+                          const scoreText = (campaign.campaign_type === 'WEEKLY_QUIZ' && response.score !== null)
+                              ? `<strong>(Score: ${response.score}/${campaign.questionsMap.size})</strong>` : '';
+                          const qaBlocks = Object.entries(response.response_data).map(([questionId, answer]) => {
+                              const questionText = campaign.questionsMap.get(questionId) || `Question ID #${questionId}`;
+                              return `<div class="response-qa-block"><div class="response-question">${questionText}</div><div class="response-answer">${answer}</div></div>`;
+                          }).join('');
+                          return `<div class="response-item"><div class="response-student-header">${studentIdentifier} ${scoreText}</div>${qaBlocks}</div>`;
+                      }).join('');
+                  }
+
+                  const winnersHtml = campaign.vouchers.length > 0
+                      ? `<ul class="details-list">${campaign.vouchers.map(v => `<li>${v.students.full_name} (${v.students.student_number}) <span class="winner-redeemed">${v.is_redeemed ? '(Redeemed)' : '(Not Redeemed)'}</span></li>`).join('')}</ul>`
+                      : '<p>Winners have not been picked yet.</p>';
+
+                  const pickWinnersButtonHtml = (campaign.status === 'Sent' && participantCount > 0 && campaign.vouchers.length === 0)
+                      ? `<button class="btn btn-success pick-winners-btn" data-campaign-id="${campaign.id}"><i class="fas fa-trophy"></i> Pick Winners</button>`
+                      : `<button class="btn btn-success" disabled title="${campaign.status !== 'Sent' ? 'Campaign not sent' : (participantCount === 0 ? 'No participants yet' : 'Winners already picked')}"><i class="fas fa-trophy"></i> Pick Winners</button>`;
+
+                  item.innerHTML = `
+                      <div class="campaign-item-header" data-campaign-id="${campaign.id}">
+                          <div class="campaign-info">
+                              <span class="campaign-title">${campaign.title}</span>
+                              <div class="campaign-meta">
+                                  <span><i class="fas fa-calendar-alt"></i> ${new Date(campaign.created_at).toLocaleDateString()}</span>
+                                  <span><i class="fas fa-users"></i> ${participantCount} Responses</span>
+                              </div>
+                          </div>
+                          <span class="campaign-status ${campaign.status}">${campaign.status}</span>
+                      </div>
+                      <div class="campaign-details-content" id="content-${campaign.id}">
+                          <div class="details-section">
+                              <h5 class="details-title">Details</h5>
+                              <p><strong>Incentive:</strong> ${campaign.incentive}</p>
+                              <div style="margin-top: 1rem;">${pickWinnersButtonHtml}</div>
+                          </div>
+                          <div class="details-section">
+                              <h5 class="details-title">Responses</h5>
+                              ${responsesHtml}
+                          </div>
+                          <div class="details-section">
+                              <h5 class="details-title">Winners</h5>
+                              ${winnersHtml}
+                          </div>
+                      </div>`;
+                  accordion.appendChild(item);
+              });
+          }
+
+          async function fetchAndDisplayCampaigns() {
+              campaignListContainer.innerHTML = '<p>Loading campaigns...</p>';
+              try {
+                  const campaigns = await authenticatedFetch('/api/get-campaigns');
+                  allCampaigns = campaigns;
+
+                  if (campaigns.length === 0) {
+                      campaignListContainer.innerHTML = '<p>No campaigns have been created yet.</p>';
+                      return;
+                  }
+
+                  const campaignsWithQuestionMaps = campaigns.map(campaign => ({
+                      ...campaign,
+                      questionsMap: new Map(campaign.campaign_questions.map(q => [q.id.toString(), q.question_text]))
+                  }));
+
+                  // Apply current filter
+                  const filteredCampaigns = filterCampaigns(campaignsWithQuestionMaps, campaignFilter.value);
+                  displayCampaigns(filteredCampaigns);
+              } catch (error) {
+                  campaignListContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+              }
+          }
+
+          campaignListContainer.addEventListener('click', async (event) => {
+              const header = event.target.closest('.campaign-item-header');
+              const button = event.target.closest('.pick-winners-btn');
+              if (header) { header.classList.toggle('open'); }
+              if (button && !button.disabled) {
+                  const campaignId = button.dataset.campaignId;
+                  if (confirm('Are you sure you want to pick winners? This cannot be undone.')) {
+                      button.disabled = true;
+                      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Picking...';
+                      try {
+                          const result = await authenticatedFetch('/api/pick-winners', {
+                              method: 'POST',
+                              body: JSON.stringify({ campaign_id: parseInt(campaignId) })
+                          });
+                          statusDiv.textContent = result.message;
+                          statusDiv.className = 'status-message success';
+                          fetchAndDisplayCampaigns();
+                      } catch (err) {
+                          statusDiv.textContent = `Error: ${err.message}`;
+                          statusDiv.className = 'status-message error';
+                          button.disabled = false;
+                          button.innerHTML = "<i class='fas fa-trophy'></i> Pick Winners";
+                      }
+                  }
+              }
+          });
+
+          campaignFilter.addEventListener('change', () => {
+              if (allCampaigns.length > 0) {
+                  const filteredCampaigns = filterCampaigns(
+                      allCampaigns.map(campaign => ({
+                          ...campaign,
+                          questionsMap: new Map(campaign.campaign_questions.map(q => [q.id.toString(), q.question_text]))
+                      })),
+                      campaignFilter.value
+                  );
+                  displayCampaigns(filteredCampaigns);
+              }
+          });
+
+          document.getElementById('logout-btn').addEventListener('click', async () => {
+              await supabaseClient.auth.signOut();
+              window.location.href = '/login';
+          });
+
+          fetchAndDisplayCampaigns();
+      });
+    </script>
+  </body>
+</html>

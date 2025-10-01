@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Registration - DUT Attendance System</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"
+    ></script>
+    <style>
+      :root {
+        --primary-color: #005a9c;
+        --secondary-color: #00947d;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --background-color: #f4f7f6;
+        --card-background-color: #ffffff;
+        --text-color: #333333;
+        --label-color: #555555;
+        --input-border-color: #dddddd;
+        --input-focus-color: #005a9c;
+        --button-hover-color: #007bbd;
+        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --border-radius: 8px;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--background-color);
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text-color);
+        padding: 20px;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        color: var(--primary-color);
+      }
+      .logo {
+        height: 50px;
+      }
+      .header-title {
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .main-card {
+        background-color: var(--card-background-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        width: 100%;
+        max-width: 700px;
+        overflow: hidden;
+      }
+      .card-header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 20px 25px;
+        font-size: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card-body {
+        padding: 30px;
+      }
+      .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        position: relative;
+      }
+      .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+      }
+      .step-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--input-border-color);
+        color: var(--label-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        z-index: 2;
+        transition: background-color 0.4s ease, color 0.4s ease;
+      }
+      .step-label {
+        margin-top: 8px;
+        font-size: 14px;
+        color: var(--label-color);
+        font-weight: 600;
+      }
+      .step.active .step-icon,
+      .step.completed .step-icon {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .step-connector {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        right: -50%;
+        height: 4px;
+        background-color: var(--input-border-color);
+        z-index: 1;
+      }
+      .step.completed .step-connector {
+        background-color: var(--primary-color);
+      }
+      .step:last-child .step-connector {
+        display: none;
+      }
+      p.instructions {
+        text-align: center;
+        color: var(--label-color);
+        margin-bottom: 30px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label.form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--label-color);
+      }
+      select.form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+      }
+      select.form-control:focus {
+        outline: none;
+        border-color: var(--input-focus-color);
+      }
+      .video-container {
+        position: relative;
+        width: 100%;
+        padding-top: 75%;
+        background-color: #000;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        margin: 20px 0;
+        box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      video,
+      canvas#overlay_canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: scaleX(-1);
+        border-radius: var(--border-radius);
+      }
+      .feedback-container {
+        text-align: center;
+        margin: 20px 0;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        background: #f0f2f5;
+        font-weight: 600;
+        border-left: 5px solid var(--label-color);
+      }
+      .feedback-success {
+        border-color: var(--success-color);
+        background-color: #e9f7ec;
+        color: var(--success-color);
+      }
+      .feedback-error {
+        border-color: var(--danger-color);
+        background-color: #fcebec;
+        color: var(--danger-color);
+      }
+      .feedback-processing {
+        border-color: var(--primary-color);
+        background-color: #e6f0f6;
+        color: var(--primary-color);
+      }
+      .btn {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .btn-primary {
+        background-color: var(--primary-color);
+      }
+      .btn:hover:not(:disabled) {
+        background-color: #007a67;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background-color: var(--button-hover-color);
+      }
+      .btn:disabled {
+        background-color: #a0c3e2;
+        cursor: not-allowed;
+      }
+      @media (max-width: 576px) {
+        .step-label {
+          display: none;
+        }
+        .card-body {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img src="/static/images/DUTLOGO.jpeg" alt="DUT Logo" class="logo" />
+      <div class="header-title">Attendance System</div>
+    </div>
+
+    <div class="main-card">
+      <div class="card-header">
+        <i class="fas fa-camera"></i>
+        <span>Complete Your Registration</span>
+      </div>
+      <div class="card-body">
+        <div class="step-indicator">
+          <div class="step completed" id="step-1">
+            <div class="step-icon">1</div>
+            <div class="step-label">Details</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step active" id="step-2">
+            <div class="step-icon">2</div>
+            <div class="step-label">Face Scan</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step" id="step-3">
+            <div class="step-icon">3</div>
+            <div class="step-label">Complete</div>
+          </div>
+        </div>
+
+        <p class="instructions">
+          We need to capture three images of your face for better accuracy.
+        </p>
+
+        <form id="face-reg-form">
+          <div class="form-group">
+            <label for="module-code-select" class="form-label">Module</label>
+            <select
+              id="module-code-select"
+              name="module_code"
+              class="form-control"
+              required
+            >
+              <option value="SODM401">Advanced Diploma in ICT - SODM401</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="videoSource" class="form-label">Select Camera</label>
+            <div style="display: flex; gap: 10px">
+              <select id="videoSource" class="form-control"></select>
+              <button
+                type="button"
+                id="start-camera-btn"
+                class="btn btn-primary"
+                style="width: auto; padding: 12px 20px"
+              >
+                <i class="fas fa-video"></i> Start
+              </button>
+            </div>
+          </div>
+
+          <div class="video-container">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="overlay_canvas"></canvas>
+          </div>
+
+          <div id="capture-prompt" class="feedback-container">
+            Step 1 of 3: Look directly at the camera
+          </div>
+          <div id="feedback" class="feedback-container">
+            Please select a camera and click Start
+          </div>
+
+          <button id="capture-btn" type="button" class="btn" disabled>
+            <i class="fas fa-camera-retro"></i>
+            <span>Capture Image (1/3)</span>
+          </button>
+
+          <canvas id="capture_canvas" style="display: none"></canvas>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const video = document.getElementById("video");
+        const overlayCanvas = document.getElementById("overlay_canvas");
+        const captureCanvas = document.getElementById("capture_canvas");
+        const captureBtn = document.getElementById("capture-btn");
+        const startCameraBtn = document.getElementById("start-camera-btn");
+        const form = document.getElementById("face-reg-form");
+        const feedbackDiv = document.getElementById("feedback");
+        const videoSelect = document.getElementById("videoSource");
+        const capturePrompt = document.getElementById("capture-prompt");
+        const captureBtnText = captureBtn.querySelector("span");
+        const step2 = document.getElementById("step-2");
+        const step3 = document.getElementById("step-3");
+
+        let accessToken = null;
+        let capturedImages = [];
+        const requiredImages = 3;
+        const prompts = [
+          "Step 1 of 3: Look directly at the camera.",
+          "Step 2 of 3: Turn your head slightly to the left.",
+          "Step 3 of 3: Turn your head slightly to the right.",
+        ];
+
+        function handleAuth() {
+          // Try both hash and query parameters
+          let authToken = null;
+          let error = null;
+
+          // Check URL hash first (for some OAuth flows)
+          const hash = window.location.hash.substring(1);
+          if (hash) {
+            const hashParams = new URLSearchParams(hash);
+            authToken = hashParams.get("access_token");
+            error = hashParams.get("error");
+            console.log("Checked hash params:", { authToken, error });
+          }
+
+          // If not found in hash, check query parameters
+          if (!authToken) {
+            const urlParams = new URLSearchParams(window.location.search);
+            authToken = urlParams.get("access_token") || urlParams.get("token");
+            error = urlParams.get("error");
+            console.log("Checked URL params:", { authToken, error });
+          }
+
+          // Clean up the URL
+          history.replaceState(null, null, window.location.pathname);
+
+          if (error) {
+            console.error("Auth error:", error);
+            alert("Authentication failed: " + error);
+            startCameraBtn.disabled = true;
+            captureBtn.disabled = true;
+            feedbackDiv.textContent =
+              "Authentication failed. Please start over.";
+            feedbackDiv.className = "feedback-container feedback-error";
+            return null;
+          }
+
+          if (!authToken) {
+            console.warn("No access token found in URL");
+            // Don't disable camera immediately - let user try anyway for testing
+            feedbackDiv.textContent =
+              "Note: Authentication token not detected. You can still test the camera functionality.";
+            feedbackDiv.className = "feedback-container";
+          }
+
+          return authToken;
+        }
+
+        async function getDevices() {
+          try {
+            await navigator.mediaDevices.getUserMedia({ video: true }); // Request permission first
+            const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+            videoSelect.innerHTML = "";
+            deviceInfos.forEach((deviceInfo) => {
+              if (deviceInfo.kind === "videoinput") {
+                const option = document.createElement("option");
+                option.value = deviceInfo.deviceId;
+                option.text =
+                  deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+                videoSelect.appendChild(option);
+              }
+            });
+          } catch (err) {
+            feedbackDiv.textContent =
+              "Could not list cameras. Please allow camera access.";
+            feedbackDiv.className = "feedback-container feedback-error";
+          }
+        }
+
+        async function startVideo() {
+          if (window.stream) {
+            window.stream.getTracks().forEach((track) => track.stop());
+          }
+          const deviceId = videoSelect.value;
+          feedbackDiv.textContent = "Starting camera...";
+          feedbackDiv.className = "feedback-container feedback-processing";
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { deviceId: { exact: deviceId } },
+            });
+            window.stream = stream;
+            video.srcObject = stream;
+            captureBtn.disabled = true;
+          } catch (err) {
+            feedbackDiv.textContent =
+              "Could not start camera. Check browser permissions.";
+            feedbackDiv.className = "feedback-container feedback-error";
+            console.error(err);
+          }
+        }
+
+        video.addEventListener("play", () => {
+          feedbackDiv.textContent = "Camera active. Please position your face.";
+          feedbackDiv.className = "feedback-container";
+          updateCapturePrompt();
+          const displaySize = {
+            width: video.clientWidth,
+            height: video.clientHeight,
+          };
+          faceapi.matchDimensions(overlayCanvas, displaySize);
+
+          setInterval(async () => {
+            if (video.paused || video.ended) return;
+            const detections = await faceapi.detectAllFaces(
+              video,
+              new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 })
+            );
+            const resizedDetections = faceapi.resizeResults(
+              detections,
+              displaySize
+            );
+            const ctx = overlayCanvas.getContext("2d");
+            ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+            if (capturedImages.length >= requiredImages) {
+              ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+              return;
+            }
+
+            if (resizedDetections.length === 1) {
+              const box = resizedDetections[0].box;
+              const boxColor =
+                box.width > 150 && box.height > 150 ? "#28a745" : "#ffc107";
+              ctx.strokeStyle = boxColor;
+              ctx.lineWidth = 4;
+              ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+              if (box.width > 150 && box.height > 150) {
+                feedbackDiv.textContent = "Face detected. Ready to capture.";
+                feedbackDiv.className = "feedback-container feedback-success";
+                captureBtn.disabled = false;
+              } else {
+                feedbackDiv.textContent = "Please move closer to the camera.";
+                feedbackDiv.className = "feedback-container";
+                captureBtn.disabled = true;
+              }
+            } else {
+              feedbackDiv.textContent =
+                resizedDetections.length > 1
+                  ? "Multiple faces detected. Please ensure only you are in the frame."
+                  : "No face detected. Please position yourself in front of the camera.";
+              feedbackDiv.className = "feedback-container feedback-error";
+              captureBtn.disabled = true;
+            }
+          }, 400);
+        });
+
+        function handleCapture() {
+          if (capturedImages.length >= requiredImages) return;
+
+          const context = captureCanvas.getContext("2d");
+          const modelSize = 224; // Optimal size for many models
+          captureCanvas.width = modelSize;
+          captureCanvas.height = modelSize;
+
+          // Flip the image back to normal before sending
+          context.translate(modelSize, 0);
+          context.scale(-1, 1);
+          context.drawImage(video, 0, 0, modelSize, modelSize);
+
+          const imageDataUrl = captureCanvas.toDataURL("image/jpeg", 0.9);
+          capturedImages.push(imageDataUrl);
+          feedbackDiv.textContent = `Image ${capturedImages.length} of ${requiredImages} captured!`;
+          feedbackDiv.className = "feedback-container feedback-success";
+
+          if (capturedImages.length === requiredImages) {
+            capturePrompt.textContent =
+              "All images captured. Submitting for final processing...";
+            capturePrompt.className = "feedback-container feedback-processing";
+            captureBtn.disabled = true;
+            captureBtnText.textContent = "Processing...";
+            if (window.stream) {
+              window.stream.getTracks().forEach((track) => track.stop());
+            }
+            sendImagesToServer();
+          } else {
+            updateCapturePrompt();
+          }
+        }
+
+        function updateCapturePrompt() {
+          if (capturedImages.length < requiredImages) {
+            capturePrompt.textContent = prompts[capturedImages.length];
+            captureBtnText.textContent = `Capture Image (${
+              capturedImages.length + 1
+            }/${requiredImages})`;
+          }
+        }
+
+        async function sendImagesToServer() {
+          if (!accessToken) {
+            alert(
+              "Authentication token is missing. Please re-open this page from your email link, or contact support if the problem persists."
+            );
+            // Reset UI for retry
+            capturedImages = [];
+            updateCapturePrompt();
+            captureBtn.disabled = false;
+            step2.classList.remove("completed");
+            step3.classList.remove("active");
+            return;
+          }
+
+          step2.classList.add("completed");
+          step3.classList.add("active");
+
+          const payload = {
+            images_data: capturedImages,
+            module_code: form.module_code.value,
+          };
+
+          try {
+            const response = await fetch("/api/complete-registration", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+            if (response.ok) {
+              alert("Registration successful! You will be redirected.");
+              window.location.href = "/success";
+            } else {
+              throw new Error(result.error || "An unknown error occurred.");
+            }
+          } catch (error) {
+            alert("Error: " + error.message);
+            // Reset UI for retry
+            capturedImages = [];
+            updateCapturePrompt();
+            captureBtn.disabled = false;
+            step2.classList.remove("completed");
+            step3.classList.remove("active");
+          }
+        }
+
+        async function init() {
+          accessToken = handleAuth(); // Store the returned token
+          await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+
+          if (!accessToken) {
+            feedbackDiv.textContent =
+              "Camera will work for testing, but you'll need a valid email link to complete registration.";
+            feedbackDiv.className = "feedback-container";
+          } else {
+            feedbackDiv.textContent =
+              "Authentication successful. Please select a camera and click Start.";
+            feedbackDiv.className = "feedback-container feedback-success";
+          }
+
+          await getDevices();
+          startCameraBtn.onclick = startVideo;
+          captureBtn.onclick = handleCapture;
+        }
+
+        init();
+      });
+    </script>
+  </body>
+</html>

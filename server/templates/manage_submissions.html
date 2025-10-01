@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Submissions - DUT Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #005a9c;
+        --background-color: #f4f7f6;
+        --card-background-color: #ffffff;
+        --sidebar-background-color: #ffffff;
+        --text-color: #333333;
+        --label-color: #555555;
+        --input-border-color: #dddddd;
+        --button-hover-color: #004a80;
+        --success-color: #28a745;
+        --success-hover-color: #218838;
+        --danger-color: #dc3545;
+        --danger-hover-color: #c82333;
+        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+        --border-radius: 8px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--background-color);
+        margin: 0;
+        display: flex;
+        color: var(--label-color);
+      }
+
+      /* --- Sidebar --- */
+      .sidebar {
+        width: 260px;
+        background: var(--sidebar-background-color);
+        padding: 1.5rem;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+
+      .sidebar-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--input-border-color);
+      }
+
+      .sidebar-logo {
+        max-width: 70px;
+        margin-bottom: 10px;
+      }
+
+      .sidebar-brand {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-decoration: none;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-grow: 1;
+      }
+
+      .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        color: var(--label-color);
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        transition: all 0.3s;
+      }
+
+      .nav-item a:hover {
+        background-color: #eaf2fa;
+        color: var(--primary-color);
+      }
+
+      .nav-item a.active {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .nav-item a i {
+        font-size: 1.2rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #fbebee;
+        color: var(--danger-color);
+        border: none;
+        width: 100%;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        font-family: "Poppins", sans-serif;
+        transition: background-color 0.3s;
+      }
+      .logout-btn:hover {
+        background-color: #f8d7da;
+      }
+
+      /* --- Main Content --- */
+      .main-content {
+        flex-grow: 1;
+        padding: 2.5rem;
+        overflow-y: auto;
+      }
+
+      .page-header {
+        margin-bottom: 2rem;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-color);
+      }
+
+      .card {
+        background-color: var(--card-background-color);
+        padding: 1.75rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      th,
+      td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+      }
+      th {
+        font-weight: 600;
+        background-color: #f9fafb;
+        color: var(--text-color);
+      }
+
+      .status {
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        text-transform: capitalize;
+      }
+      .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .btn {
+        padding: 8px 15px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn:disabled {
+        background-color: #ccc !important;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: var(--primary-color);
+        color: white;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--button-hover-color);
+      }
+      .btn-approve {
+        background-color: var(--success-color);
+        color: white;
+      }
+      .btn-approve:hover:not(:disabled) {
+        background-color: var(--success-hover-color);
+      }
+      .btn-reject {
+        background-color: var(--danger-color);
+        color: white;
+      }
+      .btn-reject:hover:not(:disabled) {
+        background-color: var(--danger-hover-color);
+      }
+
+      .filter-controls {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .filter-btn {
+        background-color: var(--card-background-color);
+        border: 1px solid var(--input-border-color);
+        color: var(--label-color);
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .filter-btn:hover {
+        background-color: #eaf2fa;
+        border-color: var(--primary-color);
+      }
+      .filter-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
+      /* Modal Styles */
+      .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .modal-backdrop.visible {
+        display: flex;
+        opacity: 1;
+      }
+      .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+      }
+      .modal-backdrop.visible .modal-content {
+        transform: scale(1);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--input-border-color);
+        padding-bottom: 1rem;
+      }
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+      .modal-close {
+        font-size: 1.5rem;
+        cursor: pointer;
+        border: none;
+        background: none;
+        color: var(--label-color);
+      }
+      .details-grid {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .details-grid strong {
+        color: var(--text-color);
+        font-weight: 600;
+      }
+      .form-group {
+        margin-top: 1.5rem;
+      }
+      .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+      }
+      .form-select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--input-border-color);
+      }
+      .decision-info {
+        width: 100%;
+        text-align: center;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: var(--border-radius);
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img
+          src="/static/images/DUTLOGO.jpeg"
+          alt="DUT Logo"
+          class="sidebar-logo"
+        />
+        <a href="/dashboard" class="sidebar-brand">DUT Attendance</a>
+      </div>
+      <ul class="sidebar-nav">
+        <li class="nav-item">
+          <a href="/dashboard"
+            ><i class="fas fa-chart-pie"></i><span>Dashboard</span></a
+          >
+        </li>
+        <li class="nav-item">
+          <a href="/manage-schedule"
+            ><i class="fas fa-calendar-alt"></i><span>Manage Schedule</span></a
+          >
+        </li>
+        <li class="nav-item">
+          <a href="/manage-campaigns"
+            ><i class="fas fa-gift"></i><span>Attend & Win</span></a
+          >
+        </li>
+        <li class="nav-item">
+          <a href="/manage-submissions" class="active"
+            ><i class="fas fa-file-import"></i><span>Submissions</span></a
+          >
+        </li>
+      </ul>
+      <button id="logout-btn" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title">Manage Submissions</h1>
+      </header>
+
+      <div class="filter-controls" id="filter-controls">
+        <button class="filter-btn active" data-filter="All">All</button>
+        <button class="filter-btn" data-filter="Pending">Pending</button>
+        <button class="filter-btn" data-filter="Approved">Approved</button>
+        <button class="filter-btn" data-filter="Rejected">Rejected</button>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Assessment</th>
+              <th>Submitted On</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="submissions-table-body"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <div id="details-modal" class="modal-backdrop">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Submission Details</h2>
+          <button class="modal-close" id="modal-close-btn">&times;</button>
+        </div>
+        <div id="modal-body">
+          <div class="details-grid">
+            <strong>Student:</strong> <span id="modal-student-name"></span>
+            <strong>Assessment:</strong>
+            <span id="modal-assessment-name"></span>
+            <strong>Reason Category:</strong>
+            <span id="modal-reason-category"></span> <strong>Details:</strong>
+            <span id="modal-reason-details"></span> <strong>Proof:</strong>
+            <a
+              id="modal-proof-link"
+              href="#"
+              target="_blank"
+              class="btn btn-primary"
+              style="
+                text-decoration: none;
+                padding: 4px 12px;
+                font-size: 14px;
+                width: fit-content;
+              "
+              >Download Proof</a
+            >
+          </div>
+          <div class="form-group" id="decision-form-group">
+            <label for="decision-reason" class="form-label"
+              >Select a Reason for Decision</label
+            >
+            <select id="decision-reason" class="form-select">
+              <optgroup label="Approval Reasons">
+                <option>Sufficient evidence provided.</option>
+                <option>Granted based on prior communication.</option>
+              </optgroup>
+              <optgroup label="Rejection Reasons">
+                <option>Insufficient evidence provided.</option>
+                <option>Submission past deadline.</option>
+                <option>Reason provided is not valid.</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions" id="modal-actions">
+          <button id="reject-btn" class="btn btn-reject">
+            <i class="fas fa-times-circle"></i> Reject
+          </button>
+          <button id="approve-btn" class="btn btn-approve">
+            <i class="fas fa-check-circle"></i> Approve
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const SUPABASE_URL = "{{ supabase_url }}";
+        const SUPABASE_ANON_KEY = "{{ supabase_key }}";
+        const supabaseClient = supabase.createClient(
+          SUPABASE_URL,
+          SUPABASE_ANON_KEY
+        );
+
+        const tableBody = document.getElementById("submissions-table-body");
+        const modal = document.getElementById("details-modal");
+        const modalCloseBtn = document.getElementById("modal-close-btn");
+        const filterControls = document.getElementById("filter-controls");
+
+        let allSubmissions = [];
+        let currentSubmissionId = null;
+        let approveBtn = null;
+        let rejectBtn = null;
+
+        function renderSubmissions(filterStatus) {
+          const filteredData =
+            filterStatus === "All"
+              ? allSubmissions
+              : allSubmissions.filter((sub) => sub.status === filterStatus);
+
+          tableBody.innerHTML = "";
+
+          if (filteredData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No submissions found for the "${filterStatus}" filter.</td></tr>`;
+            return;
+          }
+
+          filteredData.forEach((sub) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                        <td>${sub.students.full_name}</td>
+                        <td>${sub.assessment_name}</td>
+                        <td>${new Date(
+                          sub.created_at
+                        ).toLocaleDateString()}</td>
+                        <td><span class="status status-${sub.status.toLowerCase()}">${
+              sub.status
+            }</span></td>
+                        <td><button class="btn btn-primary" data-id="${
+                          sub.id
+                        }"><i class="fas fa-eye"></i> View</button></td>
+                    `;
+            tableBody.appendChild(row);
+          });
+        }
+
+        async function fetchSubmissions() {
+          tableBody.innerHTML =
+            '<tr><td colspan="5" style="text-align: center; padding: 20px;">Loading submissions...</td></tr>';
+          const {
+            data: { session },
+          } = await supabaseClient.auth.getSession();
+          if (!session) {
+            window.location.href = "/login";
+            return;
+          }
+
+          try {
+            const response = await fetch("/api/get-apologies", {
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (!response.ok) throw new Error("Failed to fetch submissions.");
+
+            allSubmissions = await response.json();
+            renderSubmissions("All");
+          } catch (error) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="color: red; text-align: center; padding: 20px;">Error: ${error.message}</td></tr>`;
+          }
+        }
+
+        function openModal(submission) {
+          currentSubmissionId = submission.id;
+          document.getElementById("modal-student-name").textContent =
+            submission.students.full_name;
+          document.getElementById("modal-assessment-name").textContent =
+            submission.assessment_name;
+          document.getElementById("modal-reason-category").textContent =
+            submission.reason_category;
+          document.getElementById("modal-reason-details").textContent =
+            submission.reason_other_details || "N/A";
+          document.getElementById("modal-proof-link").href =
+            submission.proof_file_url || "#";
+
+          // Get modal elements
+          const modalActions = document.getElementById("modal-actions");
+          const decisionFormGroup = document.getElementById(
+            "decision-form-group"
+          );
+
+          if (submission.status === "Pending") {
+            // Show form and buttons for pending submissions
+            decisionFormGroup.style.display = "block";
+            modalActions.innerHTML = `
+                        <button id="reject-btn" class="btn btn-reject"><i class="fas fa-times-circle"></i> Reject</button>
+                        <button id="approve-btn" class="btn btn-approve"><i class="fas fa-check-circle"></i> Approve</button>
+                    `;
+
+            // Get references to the new buttons
+            approveBtn = document.getElementById("approve-btn");
+            rejectBtn = document.getElementById("reject-btn");
+
+            // Re-bind event listeners for the new buttons
+            approveBtn.addEventListener("click", () =>
+              handleDecision("Approved")
+            );
+            rejectBtn.addEventListener("click", () =>
+              handleDecision("Rejected")
+            );
+          } else {
+            // Hide form and show decision info for processed submissions
+            decisionFormGroup.style.display = "none";
+            modalActions.innerHTML = `
+                        <div class="decision-info">
+                            <strong>Decision: ${submission.status}</strong><br>
+                            <small>Reason: ${
+                              submission.decision_reason || "No reason provided"
+                            }</small>
+                        </div>
+                    `;
+          }
+
+          modal.classList.add("visible");
+        }
+
+        function closeModal() {
+          modal.classList.remove("visible");
+          currentSubmissionId = null;
+        }
+
+        async function handleDecision(status) {
+          const reason = document.getElementById("decision-reason").value;
+          if (!currentSubmissionId || !reason) {
+            alert(
+              "An error occurred. Please close and reopen the details view."
+            );
+            return;
+          }
+
+          // Disable buttons and show loading state
+          if (approveBtn && rejectBtn) {
+            approveBtn.disabled = true;
+            rejectBtn.disabled = true;
+
+            if (status === "Approved") {
+              approveBtn.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Approving...';
+            } else {
+              rejectBtn.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+            }
+          }
+
+          const {
+            data: { session },
+          } = await supabaseClient.auth.getSession();
+          try {
+            const response = await fetch("/api/update-apology-status", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({
+                submission_id: currentSubmissionId,
+                status: status,
+                reason: reason,
+              }),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+
+            alert(result.message);
+            closeModal();
+            fetchSubmissions();
+          } catch (err) {
+            alert(`Error: ${err.message}`);
+
+            // Re-enable buttons and reset text on error
+            if (approveBtn && rejectBtn) {
+              approveBtn.disabled = false;
+              rejectBtn.disabled = false;
+              approveBtn.innerHTML =
+                '<i class="fas fa-check-circle"></i> Approve';
+              rejectBtn.innerHTML =
+                '<i class="fas fa-times-circle"></i> Reject';
+            }
+          }
+        }
+
+        filterControls.addEventListener("click", (event) => {
+          if (event.target.tagName === "BUTTON") {
+            document
+              .querySelector(".filter-btn.active")
+              .classList.remove("active");
+            event.target.classList.add("active");
+            const filterStatus = event.target.dataset.filter;
+            renderSubmissions(filterStatus);
+          }
+        });
+
+        tableBody.addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-id]");
+          if (button) {
+            const subId = parseInt(button.dataset.id);
+            const submission = allSubmissions.find((s) => s.id === subId);
+            if (submission) openModal(submission);
+          }
+        });
+
+        modalCloseBtn.addEventListener("click", closeModal);
+        document
+          .getElementById("logout-btn")
+          .addEventListener("click", async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = "/login";
+          });
+
+        fetchSubmissions();
+      });
+    </script>
+  </body>
+</html>

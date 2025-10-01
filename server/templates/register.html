@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration - DUT Attendance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005A9C;
+            --secondary-color: #FDB813;
+            --background-color: #f4f7f6;
+            --form-background-color: #ffffff;
+            --text-color: #333333;
+            --label-color: #555555;
+            --input-border-color: #dddddd;
+            --input-focus-color: #005A9C;
+            --button-hover-color: #004a80;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+
+        .registration-container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--form-background-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .info-panel {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 40px;
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center; /* Center the logo */
+            text-align: center; /* Center the text */
+        }
+        
+        /* New style for the logo */
+        .logo {
+            max-width: 100px; /* Adjust size as needed */
+            margin-bottom: 20px;
+        }
+
+        .info-panel h2 {
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        .info-panel p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-panel {
+            padding: 40px;
+            width: 60%;
+        }
+
+        .form-panel h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--label-color);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--input-focus-color);
+        }
+
+        input[readonly] {
+            background-color: #f9f9f9;
+            cursor: not-allowed;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--button-hover-color);
+        }
+
+        button:disabled {
+            background-color: #a0c3e2;
+            cursor: not-allowed;
+        }
+
+        .consent-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #consent-checkbox {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .consent-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        #terms-details {
+            border: 1px solid var(--input-border-color);
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+            margin-bottom: 25px;
+        }
+
+        #terms-summary {
+            padding: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .terms-content {
+            padding: 0 15px 15px 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .registration-container {
+                flex-direction: column;
+            }
+
+            .info-panel,
+            .form-panel {
+                width: 100%;
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="registration-container">
+        <div class="info-panel">
+            <img src="/static/images/DUTLOGO.jpeg" alt="DUT Logo">
+            <h2>Welcome to the DUT Attendance System</h2>
+            <p>Please fill out the form to register for the facial recognition attendance system. This will help us streamline the process of taking attendance in your classes.</p>
+        </div>
+        <div class="form-panel">
+            <h2>Student Registration</h2>
+            <form id="registration-form">
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="student-number">Student Number</label>
+                    <input type="text" id="student-number" name="student_number" required>
+                </div>
+                <div class="form-group">
+                    <label for="course">Course</label>
+                    <input type="text" id="course" name="course" value="Advanced Diploma in ICT" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="module_code">Module Code</label>
+                    <input type="text" id="module_code" name="module_code" value="SODM401" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="year">Year of Study</label>
+                    <input type="text" id="year" name="year" value="4" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="email">Student Email</label>
+                    <input type="email" id="email" name="email" placeholder="e.g., 22203922@dut4life.ac.za" required>
+                </div>
+                <div class="consent-group">
+                    <input type="checkbox" id="consent-checkbox" name="consent" required>
+                    <label for="consent-checkbox">I agree to the <a href="#" id="terms-link">Terms and Conditions</a> for biometric data use.</label>
+                </div>
+                <details id="terms-details">
+                    <summary id="terms-summary">View Terms and Conditions</summary>
+                    <div class="terms-content">
+                        <h4>Terms and Conditions for Biometric Data Use</h4>
+                        <ol>
+                            <li><strong>Purpose:</strong> Your facial data will be used solely for recording attendance for your registered modules at DUT.</li>
+                            <li><strong>Storage:</strong> Your data will be converted into a secure numerical vector and stored in an encrypted database.</li>
+                            <li><strong>Access:</strong> Access is restricted to authorized administrators and lecturers for attendance purposes only.</li>
+                            <li><strong>Consent:</strong> By checking the box, you provide explicit consent for the use of your biometric data as described.</li>
+                        </ol>
+                    </div>
+                </details>
+                <button type="submit" form="registration-form" disabled>Register (Face Scan Next)</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Javascript remains the same
+        const form = document.getElementById('registration-form');
+        const submitButton = document.querySelector('button[form="registration-form"]');
+        const consentCheckbox = document.getElementById('consent-checkbox');
+        const termsLink = document.getElementById('terms-link');
+        const termsDetails = document.getElementById('terms-details');
+
+        consentCheckbox.addEventListener('change', () => {
+            submitButton.disabled = !consentCheckbox.checked;
+        });
+        
+        termsLink.addEventListener('click', (event) => {
+            event.preventDefault(); 
+            termsDetails.open = true; 
+            termsDetails.scrollIntoView({ behavior: 'smooth' }); 
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            submitButton.textContent = 'Sending...';
+            submitButton.disabled = true;
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.href = '/'; 
+                } else {
+                    alert('Error: ' + (result.error || 'An unknown error occurred.'));
+                }
+            } catch (error) {
+                alert('An unexpected network error occurred.');
+            } finally {
+                submitButton.textContent = 'Register (Face Scan Next)';
+                submitButton.disabled = !consentCheckbox.checked;
+            }
+        });
+    </script>
+</body>
+</html>

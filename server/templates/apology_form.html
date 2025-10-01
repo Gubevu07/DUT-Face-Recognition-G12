@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apology Submission Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f5f7ff; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 2rem 0; }
+        .container { background: white; padding: 2.5rem; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h1 { color: #111827; margin-top: 0; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { display: block; font-weight: 500; margin-bottom: 0.5rem; color: #111827; }
+        .form-select, .form-input, .form-textarea { width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; font-family: 'Poppins', sans-serif; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .btn { background: #4f46e5; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 1.5rem; width: 100%; }
+        .status-message { margin-top: 1rem; font-weight: 500; padding: 0.8rem; border-radius: 0.5rem; display: none; }
+        .status-message.success { background-color: #dcfce7; color: #10b981; display: block; }
+        .status-message.error { background-color: #fee2e2; color: #b91c1c; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Apology Submission Form</h1>
+        <p id="greeting">Loading user details...</p>
+        <form id="submission-form">
+            <div class="form-group">
+                <label for="assessment-name" class="form-label">Which assessment did you miss?</label>
+                <select id="assessment-name" name="assessment_name" class="form-select" required>
+                    <option value="" disabled selected>Select an assessment...</option>
+                    <option value="Mid-Term Test 1">Mid-Term Test 1</option>
+                    <option value="Assignment 2">Assignment 2</option>
+                    <option value="Final Exam">Final Exam</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="reason-category" class="form-label">Reason for Absence</label>
+                <select id="reason-category" name="reason_category" class="form-select" required>
+                    <option value="" disabled selected>Select a reason...</option>
+                    <option value="Medical">Medical Reasons</option>
+                    <option value="Family Emergency">Family Emergency</option>
+                    <option value="Technical Issues">Technical Issues (Online Test)</option>
+                    <option value="Other">Other (Please specify below)</option>
+                </select>
+            </div>
+            <div class="form-group" id="other-reason-group" style="display: none;">
+                <label for="reason-other-details" class="form-label">Please provide details</label>
+                <textarea id="reason-other-details" name="reason_other_details" class="form-textarea" placeholder="Explain your reason here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="proof-file" class="form-label">Upload Proof (e.g., Doctor's Note)</label>
+                <input type="file" id="proof-file" name="proof_file" class="form-input" required>
+            </div>
+            <button type="submit" class="btn">Submit Apology</button>
+        </form>
+        <div id="status-message" class="status-message"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = '{{ supabase_url }}';
+        const SUPABASE_ANON_KEY = '{{ supabase_key }}';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const submissionForm = document.getElementById('submission-form');
+        const statusDiv = document.getElementById('status-message');
+        const greetingP = document.getElementById('greeting');
+        const reasonSelect = document.getElementById('reason-category');
+        const otherReasonGroup = document.getElementById('other-reason-group');
+
+        // Show the 'Other' text box when needed
+        reasonSelect.addEventListener('change', () => {
+            otherReasonGroup.style.display = reasonSelect.value === 'Other' ? 'block' : 'none';
+        });
+
+        // Greet the user and check authentication
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            // THIS IS THE CORRECTED LOGIC
+            // It now correctly handles the initial sign-in AND page reloads.
+            if (session?.user) { 
+                greetingP.textContent = `Hi ${session.user.email}. Please complete the form below.`;
+                submissionForm.style.display = 'block'; // Make sure form is visible
+            } else {
+                greetingP.textContent = 'Authentication error. Please request a new link.';
+                submissionForm.style.display = 'none';
+            }
+        });
+
+        submissionForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            statusDiv.className = 'status-message';
+            statusDiv.textContent = 'Submitting...';
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                statusDiv.textContent = 'Error: Your session has expired. Please request a new link.';
+                statusDiv.className = 'status-message error';
+                return;
+            }
+
+            const formData = new FormData(submissionForm);
+
+            try {
+                const response = await fetch('/api/submit-apology', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: formData // Use FormData directly for file uploads
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    submissionForm.style.display = 'none';
+                    greetingP.style.display = 'none';
+                    statusDiv.textContent = "Submission successful! Your lecturer has been notified.";
+                    statusDiv.className = 'status-message success';
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (err) {
+                statusDiv.textContent = `Error: ${err.message}`;
+                statusDiv.className = 'status-message error';
+            }
+        });
+    </script>
+</body>
+</html>

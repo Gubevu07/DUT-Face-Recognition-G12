@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Camera Selector Test</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 20px; height: 100vh; font-family: sans-serif; background-color: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; }
+        .controls { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        select { font-size: 1em; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        button { font-size: 1em; padding: 8px 15px; border: none; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        video { width: 100%; max-width: 640px; height: auto; border: 2px solid #ccc; background-color: #000; }
+        #log { margin-top: 15px; font-weight: bold; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Camera Selector</h1>
+        <p>This page lists all cameras your browser can see. Please select one and click Start.</p>
+        <div class="controls">
+            <label for="videoSource">Camera source:</label>
+            <select id="videoSource"></select>
+            <button id="startButton">Start Camera</button>
+        </div>
+        <video id="video" autoplay playsinline muted></video>
+        <div id="log">Please select a camera and click "Start Camera".</div>
+    </div>
+
+    <script>
+        const videoElement = document.getElementById('video');
+        const videoSelect = document.getElementById('videoSource');
+        const startButton = document.getElementById('startButton');
+        const log = document.getElementById('log');
+
+        function handleError(error) {
+            log.textContent = `ERROR: ${error.name} - ${error.message}`;
+            log.style.color = 'red';
+            console.error('Error: ', error);
+        }
+
+        // Function to populate the dropdown menu with available video sources.
+        function getDevices() {
+            navigator.mediaDevices.enumerateDevices()
+                .then(deviceInfos => {
+                    // Clear previous options
+                    while (videoSelect.firstChild) {
+                        videoSelect.removeChild(videoSelect.firstChild);
+                    }
+                    
+                    for (const deviceInfo of deviceInfos) {
+                        if (deviceInfo.kind === 'videoinput') {
+                            const option = document.createElement('option');
+                            option.value = deviceInfo.deviceId;
+                            option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+                            videoSelect.appendChild(option);
+                        }
+                    }
+                })
+                .catch(handleError);
+        }
+
+        // Function to start the video stream from the selected device.
+        function start() {
+            // Stop any existing stream
+            if (window.stream) {
+                window.stream.getTracks().forEach(track => track.stop());
+            }
+
+            const videoSource = videoSelect.value;
+            log.textContent = 'Requesting camera stream...';
+
+            const constraints = {
+                video: { deviceId: videoSource ? { exact: videoSource } : undefined }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    window.stream = stream;
+                    videoElement.srcObject = stream;
+                    log.textContent = 'SUCCESS: Camera stream is active!';
+                    log.style.color = 'green';
+                })
+                .catch(handleError);
+        }
+
+        // Initial population of the dropdown
+        getDevices();
+
+        // Start the camera when the button is clicked
+        startButton.onclick = start;
+    </script>
+</body>
+</html>

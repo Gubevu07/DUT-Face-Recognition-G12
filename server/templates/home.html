@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUT Face Recognition Attendance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    /* Color Palette & Base Styles */
+    :root {
+        --clr-primary-400: #28a745; /* Vibrant Green */
+        --clr-primary-700: #218838; /* Darker Green */
+        --clr-neutral-900: #212529; /* Dark Text */
+        --clr-neutral-100: #f8f9fa; /* Light Background */
+        --clr-secondary: #6c757d; /* Grey for secondary actions */
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--clr-neutral-100);
+        color: var(--clr-neutral-900);
+        line-height: 1.7;
+    }
+    a {
+        text-decoration: none;
+    }
+    .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    /* Header */
+    .main-header {
+        text-align: center;
+        padding: 50px 20px;
+        background: #fff;
+    }
+    .main-header h1 {
+        font-size: 2.5rem;
+        letter-spacing: 1px;
+        color: var(--clr-neutral-900);
+        font-weight: 700;
+    }
+    .main-header p {
+        font-size: 1.1rem;
+        margin-top: 10px;
+        color: var(--clr-secondary);
+    }
+
+    /* Hero Section */
+    .hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 60px;
+        flex-wrap: wrap-reverse; 
+        padding: 80px 20px;
+    }
+    .hero-text {
+        flex: 1;
+        min-width: 320px;
+    }
+    .hero-text h2 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+    .hero-text p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+    .cta-buttons {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+    }
+    .cta-button {
+        padding: 15px 30px;
+        border-radius: 50px; 
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+        text-align: center;
+    }
+    .button-primary {
+        background: var(--clr-primary-400);
+        color: white;
+    }
+    .button-primary:hover {
+        background: var(--clr-primary-700);
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+    .button-secondary {
+        background: #fff;
+        color: var(--clr-secondary);
+        border-color: #ddd;
+    }
+    .button-secondary:hover {
+        background: var(--clr-secondary);
+        color: #fff;
+        border-color: var(--clr-secondary);
+    }
+    .hero-image {
+        flex: 1;
+        min-width: 320px;
+        text-align: center;
+    }
+    .hero-image img {
+        width: 100%;
+        max-width: 450px;
+        border-radius: 20px;
+    }
+
+    /* Escalator/Scroller Section */
+    .scroller-section {
+        padding: 80px 0;
+        background: #fff;
+    }
+    .scroller-section h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 40px;
+    }
+    .scroller {
+        max-width: 1200px;
+        margin: auto;
+        overflow: hidden;
+        -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+        mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+    }
+    .scroller__inner {
+        display: flex;
+        gap: 1.5rem;
+        padding-block: 1rem;
+        width: max-content; 
+        animation: scroll 40s linear infinite;
+    }
+    .scroller:hover .scroller__inner {
+        animation-play-state: paused;
+    }
+    @keyframes scroll {
+        to {
+            transform: translate(calc(-50% - 0.75rem)); /* Adjusted for half the items + half the gap */
+        }
+    }
+    .feature-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+        width: 300px;
+        background: var(--clr-neutral-100);
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+    .feature-item .icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 1rem;
+        fill: var(--clr-primary-400);
+    }
+    .feature-item h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Footer */
+    .main-footer {
+        text-align: center;
+        padding: 30px;
+        background: var(--clr-neutral-900);
+        color: white;
+    }
+</style>
+</head>
+<body>
+
+<header class="main-header">
+    <h1>DUT Face Recognition</h1>
+    <p>The Future of Smart Attendance</p>
+</header>
+
+<div class="container">
+    <section class="hero">
+        <div class="hero-text">
+            <h2>Streamline Your Attendance.</h2>
+            <p>Say goodbye to manual registers and long queues. Our intelligent system provides a seamless and secure way to track attendance with a simple, quick face scan.</p>
+            <div class="cta-buttons">
+                <a href="/register" class="cta-button button-primary">Register Student</a>
+                <a href="/attendance" class="cta-button button-secondary">Launch Scanner</a>
+                <a href="/login" class="cta-button button-secondary">Lecturer Login</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="/static/images/DUTLOGO.jpeg" alt="DUT Logo">
+        </div>
+    </section>
+</div>
+
+<section class="scroller-section">
+    <div class="container">
+        <h2>How Our System Works</h2>
+        <div class="scroller" data-animated="true">
+            <div class="scroller__inner">
+                <div class="feature-item">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                    <h3>1. Register Profile</h3>
+                    <p>Students complete a one-time registration with their details and a secure face scan.</p>
+                </div>
+                <div class="feature-item">
+                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a.9.9 0 0 0-.9.9V12a.9.9 0 0 0 .9.9h4.2a.9.9 0 0 0 0-1.8H12.9V6.9A.9.9 0 0 0 12 6zm0-4a8 8 0 1 0 8 8 8 8 0 0 0-8-8zm0 14.4a6.4 6.4 0 1 1 6.4-6.4 6.41 6.41 0 0 1-6.4 6.4z"></path></svg>
+                    <h3>2. Scan Face</h3>
+                    <p>Students simply scan their face on the camera to get marked present instantly.</p>
+                </div>
+                <div class="feature-item">
+                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.6 10.2L12 5.4l-8.6 4.8A1 1 0 0 0 3 11v8a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-8a1 1 0 0 0-.4-1.8zM5 18v-6.3l7-3.9 7 3.9V18zm13-8.8L12 3 6 9.2l-3.3 1.8A1 1 0 0 0 2 12v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-8a1 1 0 0 0-.7-1z"></path></svg>
+                    <h3>3. Attendance Marked</h3>
+                    <p>The system verifies the identity and marks the student 'present' in real-time, securely and accurately.</p>
+                </div>
+                <div class="feature-item">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 17.5a.5.5 0 0 0 .5-.5V8.6l2.1 2.1a.5.5 0 0 0 .7-.7l-3-3a.5.5 0 0 0-.7 0l-3 3a.5.5 0 0 0 .7.7l2.1-2.1v8.4a.5.5 0 0 0 .5.5zM19 2H5a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3zm1 17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1z"></path></svg>
+                    <h3>4. Lecturer Dashboard</h3>
+                    <p>Lecturers can log in to view attendance dashboards, track student performance, and allocate marks.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="main-footer">
+    <p>&copy; 2025 DUT | Face Recognition Attendance Project</p>
+</footer>
+
+<script>
+    const scrollers = document.querySelectorAll(".scroller");
+
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        addAnimation();
+    }
+
+    function addAnimation() {
+        scrollers.forEach((scroller) => {
+            scroller.setAttribute("data-animated", true);
+            const scrollerInner = scroller.querySelector(".scroller__inner");
+            const scrollerContent = Array.from(scrollerInner.children);
+
+            scrollerContent.forEach((item) => {
+                const duplicatedItem = item.cloneNode(true);
+                duplicatedItem.setAttribute("aria-hidden", true);
+                scrollerInner.appendChild(duplicatedItem);
+            });
+        });
+    }
+</script>
+
+</body>
+</html>

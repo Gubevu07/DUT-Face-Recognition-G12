@@ -1,0 +1,36 @@
+# Environment variables
+.env
+*.env
+
+# Virtual environment
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+*.code-workspace
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Face recognition models (if they're large)
+static/models/*.bin
+static/models/*.dat
+
+# Temporary files
+*.tmp
+*.bak

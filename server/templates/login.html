@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecturer Portal Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --clr-primary: #475569;
+            --clr-secondary: #1e293b;
+            --clr-dark: #1e293b;
+            --clr-light: #f9fafb;
+            --clr-gray: #6b7280;
+            --clr-white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #334155, #0f172a);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        /* CSS for the sliding names feature is already here and correct */
+        .name-column {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            overflow: hidden;
+            z-index: 0;
+            opacity: 0.25;
+            color: white;
+            font-weight: 500;
+        }
+
+        .name-column.left { left: 40px; }
+        .name-column.right { right: 40px; }
+        .name-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            position: absolute;
+            white-space: nowrap;
+        }
+        .name-column li {
+            padding: 15px 0;
+            font-size: 1.2rem;
+        }
+        .name-column.left ul { animation: scrollUp 40s linear infinite; }
+        .name-column.right ul { animation: scrollDown 40s linear infinite; }
+
+        @keyframes scrollUp {
+            from { transform: translateY(0); }
+            to { transform: translateY(-50%); }
+        }
+        @keyframes scrollDown {
+            from { transform: translateY(-50%); }
+            to { transform: translateY(0); }
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+        .login-container:hover {
+            transform: translateY(-5px);
+        }
+        .login-header { text-align: center; margin-bottom: 30px; }
+        .logo { display: flex; justify-content: center; margin-bottom: 20px; }
+        .logo-icon {
+            background: linear-gradient(135deg, var(--clr-primary), var(--clr-secondary));
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            box-shadow: 0 5px 15px rgba(71, 85, 105, 0.4);
+        }
+        h2 { color: #2d3748; font-size: 28px; margin-bottom: 8px; font-weight: 700; }
+        .subtitle { color: #718096; font-size: 16px; font-weight: 500; }
+        .form-group { margin-bottom: 25px; position: relative; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #4a5568; font-size: 15px; padding-left: 5px; }
+        .input-wrapper { position: relative; }
+        input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            color: #2d3748;
+            outline: none;
+        }
+        input:focus {
+            border-color: var(--clr-primary);
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.2);
+            background: white;
+        }
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--clr-primary), var(--clr-secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(71, 85, 105, 0.4);
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            text-decoration: none; /* Added for anchor tags */
+            display: inline-block; /* Added for anchor tags */
+            text-align: center; /* Added for anchor tags */
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(71, 85, 105, 0.5);
+            background: linear-gradient(135deg, #334155, #0f172a);
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn:disabled { cursor: not-allowed; background: #9ca3af; box-shadow: none; }
+        .btn i { margin-right: 8px; font-size: 20px; vertical-align: middle; }
+        
+        /* NEW STYLE FOR THE 'BACK TO HOME' BUTTON */
+        .btn.btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+            box-shadow: none;
+        }
+        .btn.btn-secondary:hover {
+            background: #cbd5e1;
+            box-shadow: 0 5px 15px rgba(71, 85, 105, 0.2);
+        }
+        
+        #error-message { color: #e53e3e; font-weight: 600; margin-top: 20px; text-align: center; height: 25px; font-size: 14px; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 900px) { .name-column { display: none; } }
+        @media (max-width: 480px) { .login-container { padding: 30px 20px; } h2 { font-size: 24px; } input { padding: 14px 20px 14px 50px; } }
+    </style>
+</head>
+<body>
+    
+    <div class="name-column left">
+        <ul>
+            <li>Sonwabise Mtirara</li>
+            <li>Philani Myeni</li>
+            <li>Mpokeleng Makaba</li>
+            <li>Mbalentle Qwaka</li>
+            <li>Zama Siphambo</li>
+            <li>Amahle Ntuli</li>
+            <li>Owethu Mbanjwa</li>
+            <li>Thabanni Mpungose</li>
+            <li>Nompilo Mbatha</li>
+            <li>Thank you <strong>SONWA</strong> for Featuring Us</li>
+            <li>Dankie</li>
+            <li>Ngyabonga ngempela mfowethu</li>
+            <li>Sonwabise Mtirara</li>
+            <li>Philani Myeni</li>
+            <li>Mpokeleng Makaba</li>
+            <li>Mbalentle Qwaka</li>
+            <li>Zama Siphambo</li>
+            <li>Amahle Ntuli</li>
+            <li>Owethu Mbanjwa</li>
+            <li>Thabanni Mpungose</li>
+            <li>Nompilo Mbatha</li>
+            <li>Thank you <strong>SONWA</strong> for Featuring Us</li>
+            <li>Dankie</li>
+            <li>Ngyabonga ngempela mfowethu</li>
+        </ul>
+    </div>
+    <div class="name-column right">
+        <ul>
+            <li>Sonwabise Mtirara</li>
+            <li>Philani Myeni</li>
+            <li>Mpokeleng Makaba</li>
+            <li>Mbalentle Qwaka</li>
+            <li>Zama Siphambo</li>
+            <li>Amahle Ntuli</li>
+            <li>Owethu Mbanjwa</li>
+            <li>Thabanni Mpungose</li>
+            <li>Nompilo Mbatha</li>
+            <li>Thank you <strong>SONWA</strong></li>
+            <li>for Featuring Us</li>
+            <li>Dankie</li>
+            <li>Ngyabonga ngempela mfowethu</li>
+            <li>Sonwabise Mtirara</li>
+            <li>Philani Myeni</li>
+            <li>Mpokeleng Makaba</li>
+            <li>Mbalentle Qwaka</li>
+            <li>Zama Siphambo</li>
+            <li>Amahle Ntuli</li>
+            <li>Owethu Mbanjwa</li>
+            <li>Thabanni Mpungose</li>
+            <li>Nompilo Mbatha</li>
+            <li>Thank you <strong>SONWA</strong></li>
+            <li>for Featuring Us</li>
+            <li>Dankie</li>
+            <li>Ngyabonga ngempela mfowethu</li>
+        </ul>
+    </div>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class='bx bxs-graduation'></i>
+                </div>
+            </div>
+            <h2>Lecturer Portal</h2>
+            <p class="subtitle">Access your academic dashboard</p>
+        </div>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <i class='bx bx-envelope input-icon'></i>
+                    <input type="email" id="email" name="email" placeholder="lecturer@university.edu" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class='bx bx-lock-alt input-icon'></i>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">
+                <i class='bx bx-log-in'></i>
+                <span>Login</span>
+            </button>
+
+            <a href="/" class="btn btn-secondary">
+                <i class='bx bx-home-alt'></i>
+                <span>Back to Home</span>
+            </a>
+            
+            <div id="error-message"></div>
+        </form>
+    </div>
+
+    <script>
+        // --- Initialize Supabase Client ---
+        const SUPABASE_URL = '{{ supabase_url }}';
+        const SUPABASE_ANON_KEY = '{{ supabase_key }}';
+        let supabaseClient;
+        
+        {% raw %}
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes('{{')) {
+            console.error("Supabase keys not passed to template properly.");
+            const errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.textContent = 'Configuration Error: Cannot connect to authentication service.';
+        } else {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+        {% endraw %}
+
+        // --- Get form elements from the page ---
+        const form = document.getElementById('login-form');
+        const errorMessageDiv = document.getElementById('error-message');
+        const submitButton = form.querySelector('.btn');
+        const buttonText = submitButton.querySelector('span');
+        const buttonIcon = submitButton.querySelector('i');
+
+        // --- Handle the form submission ---
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMessageDiv.textContent = '';
+            
+            const email = form.email.value;
+            const password = form.password.value;
+
+            // Set a loading state
+            buttonText.textContent = 'Authenticating...';
+            buttonIcon.className = 'bx bx-loader bx-spin';
+            submitButton.disabled = true;
+
+            if (!supabaseClient) {
+                errorMessageDiv.textContent = 'Client not initialized. Check configuration.';
+                buttonText.textContent = 'Login';
+                buttonIcon.className = 'bx bx-log-in';
+                submitButton.disabled = false;
+                return;
+            }
+            
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                errorMessageDiv.textContent = error.message;
+                // Reset button on failure
+                buttonText.textContent = 'Login';
+                buttonIcon.className = 'bx bx-log-in';
+                submitButton.disabled = false;
+            } else {
+                // On success, Supabase saves the session and we can redirect
+                window.location.href = '/dashboard';
+            }
+        });
+        
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('.input-icon').style.color = 'var(--clr-primary)';
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('.input-icon').style.color = '#a0aec0';
+            });
+        });
+
+        // --- NEW SCRIPT TO REDIRECT IF ALREADY LOGGED IN ---
+        // This prevents a logged-in user from seeing the login page.
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    window.location.href = '/dashboard';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

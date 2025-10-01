@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance Scanner - DUT</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+      :root {
+        --primary-color: #005a9c;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --background-color: #f4f7f6;
+        --card-background-color: #ffffff;
+        --text-color: #333333;
+        --label-color: #555555;
+        --input-border-color: #dddddd;
+        --button-hover-color: #004a80;
+        --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --border-radius: 8px;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--background-color);
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        color: var(--text-color);
+        padding: 20px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        color: var(--primary-color);
+      }
+
+      .logo {
+        height: 50px;
+      }
+
+      .header-title {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .scanner-card {
+        background-color: var(--card-background-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        width: 100%;
+        max-width: 650px;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--input-border-color);
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+      }
+
+      .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--label-color);
+      }
+      .status-dot.active {
+        background-color: var(--success-color);
+      }
+      .status-dot.inactive {
+        background-color: var(--danger-color);
+      }
+
+      #timer {
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      select.form-control {
+        flex-grow: 1;
+        padding: 12px;
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        transition: border-color 0.3s;
+      }
+
+      select.form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+
+      .btn {
+        padding: 12px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn:hover:not(:disabled) {
+        background-color: var(--button-hover-color);
+      }
+
+      .btn:disabled {
+        background-color: #a0c3e2;
+        cursor: not-allowed;
+      }
+
+      .video-container {
+        position: relative;
+        width: 100%;
+        padding-top: 75%; /* 4:3 Aspect Ratio */
+        background-color: #000;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        margin-bottom: 25px;
+      }
+
+      video,
+      canvas#overlay_canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: scaleX(-1);
+        border-radius: var(--border-radius);
+      }
+
+      #feedback {
+        font-size: 1.5em;
+        font-weight: 600;
+        padding: 20px;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        min-height: 80px;
+      }
+
+      .feedback-neutral {
+        background-color: #f0f2f5;
+        color: var(--label-color);
+      }
+      .feedback-success {
+        background-color: #e9f7ec;
+        color: var(--success-color);
+      }
+      .feedback-error {
+        background-color: #fcebec;
+        color: var(--danger-color);
+      }
+      .feedback-processing {
+        background-color: #e6f0f6;
+        color: var(--primary-color);
+      }
+
+      #home-btn {
+        margin-top: 20px;
+        background: none;
+        border: 2px solid var(--label-color);
+        color: var(--label-color);
+        font-weight: 600;
+      }
+      #home-btn:hover {
+        background-color: var(--label-color);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img src="/static/images/DUTLOGO.jpeg" alt="DUT Logo" class="logo" />
+      <div class="header-title">Attendance Scanner</div>
+    </div>
+
+    <div class="scanner-card">
+      <div class="status-bar">
+        <div class="status">
+          <div id="status-dot" class="status-dot"></div>
+          <span id="status-text">Checking...</span>
+        </div>
+        <div id="timer"></div>
+      </div>
+
+      <div class="controls">
+        <select id="videoSource" class="form-control" disabled></select>
+        <button type="button" id="start-camera-btn" class="btn" disabled>
+          <i class="fas fa-video"></i>
+          <span>Checking...</span>
+        </button>
+      </div>
+
+      <div class="video-container">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay_canvas"></canvas>
+      </div>
+
+      <div id="feedback" class="feedback-neutral">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading Recognition System...</span>
+      </div>
+
+      <canvas id="capture_canvas" style="display: none"></canvas>
+      <button id="home-btn" class="btn">End Session</button>
+    </div>
+
+    <script>
+      const video = document.getElementById("video");
+      const captureCanvas = document.getElementById("capture_canvas");
+      const feedbackDiv = document.getElementById("feedback");
+      const overlayCanvas = document.getElementById("overlay_canvas");
+      const homeBtn = document.getElementById("home-btn");
+      const videoSelect = document.getElementById("videoSource");
+      const startCameraBtn = document.getElementById("start-camera-btn");
+      const startCameraBtnText = startCameraBtn.querySelector("span");
+      const timerDiv = document.getElementById("timer");
+      const statusDot = document.getElementById("status-dot");
+      const statusText = document.getElementById("status-text");
+
+      let isProcessing = false;
+      let modelsLoaded = false;
+      let detectionInterval;
+      let countdownInterval;
+
+      homeBtn.addEventListener("click", () => {
+        if (detectionInterval) clearInterval(detectionInterval);
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (window.stream)
+          window.stream.getTracks().forEach((track) => track.stop());
+        window.location.href = "/";
+      });
+
+      // --- Helper function to update feedback UI ---
+      function updateFeedback(className, iconClass, text) {
+        feedbackDiv.className = className;
+        feedbackDiv.innerHTML = `<i class="fas ${iconClass}"></i><span>${text}</span>`;
+      }
+
+      function startCountdown(endTimeStr, currentTimeStr) {
+        clearInterval(countdownInterval);
+
+        const endTime = new Date(endTimeStr);
+        let currentTime = new Date(currentTimeStr);
+
+        countdownInterval = setInterval(() => {
+          const timeLeft = endTime - currentTime;
+
+          if (timeLeft < 0) {
+            clearInterval(countdownInterval);
+            timerDiv.textContent = "Time's up!";
+            setTimeout(checkClassStatus, 1000);
+            return;
+          }
+
+          const minutesLeft = Math.floor((timeLeft / 1000 / 60) % 60);
+          const secondsLeft = Math.floor((timeLeft / 1000) % 60);
+          timerDiv.textContent = `Time left: ${String(minutesLeft).padStart(
+            2,
+            "0"
+          )}:${String(secondsLeft).padStart(2, "0")}`;
+
+          currentTime.setSeconds(currentTime.getSeconds() + 1);
+        }, 1000);
+      }
+
+      async function checkClassStatus() {
+        try {
+          const response = await fetch("/api/get-current-class");
+          const data = await response.json();
+
+          if (data.isActive) {
+            updateFeedback(
+              "feedback-neutral",
+              "fa-info-circle",
+              `Class is active!`
+            );
+            videoSelect.disabled = false;
+            startCameraBtn.disabled = false;
+            startCameraBtnText.textContent = "Start Camera";
+            statusDot.className = "status-dot active";
+            statusText.textContent = "Live";
+            startCountdown(data.attendance_ends, data.current_time);
+          } else {
+            updateFeedback(
+              "feedback-neutral",
+              "fa-info-circle",
+              "No class is currently in session."
+            );
+            videoSelect.disabled = true;
+            startCameraBtn.disabled = true;
+            startCameraBtnText.textContent = "Attendance Closed";
+            timerDiv.textContent = "";
+            statusDot.className = "status-dot inactive";
+            statusText.textContent = "Session Ended";
+            clearInterval(countdownInterval);
+          }
+        } catch (error) {
+          updateFeedback(
+            "feedback-error",
+            "fa-exclamation-triangle",
+            "Could not check class status."
+          );
+        }
+      }
+
+      async function getDevices() {
+        try {
+          const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+          videoSelect.innerHTML = "";
+          deviceInfos.forEach((deviceInfo) => {
+            if (deviceInfo.kind === "videoinput") {
+              const option = document.createElement("option");
+              option.value = deviceInfo.deviceId;
+              option.text =
+                deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+              videoSelect.appendChild(option);
+            }
+          });
+        } catch (err) {
+          updateFeedback(
+            "feedback-error",
+            "fa-exclamation-triangle",
+            "Could not list cameras."
+          );
+        }
+      }
+
+      async function startVideo() {
+        if (window.stream) {
+          window.stream.getTracks().forEach((track) => track.stop());
+        }
+        const deviceId = videoSelect.value;
+        updateFeedback(
+          "feedback-processing",
+          "fa-spinner fa-spin",
+          "Starting camera..."
+        );
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: deviceId },
+          });
+          window.stream = stream;
+          video.srcObject = stream;
+        } catch (err) {
+          updateFeedback(
+            "feedback-error",
+            "fa-exclamation-triangle",
+            "Could not start camera."
+          );
+          console.error(err);
+        }
+      }
+
+      async function sendFrameForRecognition() {
+        captureCanvas.width = video.videoWidth;
+        captureCanvas.height = video.videoHeight;
+        const context = captureCanvas.getContext("2d");
+        context.scale(-1, 1);
+        context.drawImage(
+          video,
+          -captureCanvas.width,
+          0,
+          captureCanvas.width,
+          captureCanvas.height
+        );
+        try {
+          const imageDataUrl = captureCanvas.toDataURL("image/jpeg", 0.85);
+          const response = await fetch("/api/mark-attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image_data: imageDataUrl }),
+          });
+          const result = await response.json();
+          updateUIAfterResponse(result, response.ok);
+        } catch (error) {
+          updateUIAfterResponse({ error: "Server connection error" }, false);
+        }
+        setTimeout(() => {
+          isProcessing = false;
+          updateFeedback("feedback-neutral", "fa-face-smile", "Ready to scan");
+        }, 2500);
+      }
+
+      function updateUIAfterResponse(result, isSuccess) {
+        if (isSuccess) {
+          updateFeedback(
+            "feedback-success",
+            "fa-check-circle",
+            `${result.full_name} marked present!`
+          );
+        } else {
+          updateFeedback(
+            "feedback-error",
+            "fa-times-circle",
+            result.error || "Recognition failed"
+          );
+        }
+      }
+
+      async function detectAndProcessFace() {
+        if (!modelsLoaded || isProcessing || video.paused || video.ended)
+          return;
+        const displaySize = {
+          width: video.clientWidth,
+          height: video.clientHeight,
+        };
+        faceapi.matchDimensions(overlayCanvas, displaySize);
+        const detections = await faceapi.detectAllFaces(
+          video,
+          new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 })
+        );
+        const resizedDetections = faceapi.resizeResults(
+          detections,
+          displaySize
+        );
+        const context = overlayCanvas.getContext("2d");
+        context.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        if (detections.length === 1) {
+          const box = resizedDetections[0].box;
+          const drawBox = new faceapi.draw.DrawBox(box, {
+            boxColor: "rgba(40, 167, 69, 1)",
+            lineWidth: 3,
+          });
+          drawBox.draw(overlayCanvas);
+
+          if (box.width > 150 && box.height > 150) {
+            if (!isProcessing) {
+              isProcessing = true;
+              updateFeedback(
+                "feedback-processing",
+                "fa-spinner fa-spin",
+                "Processing face..."
+              );
+              await sendFrameForRecognition();
+            }
+          } else if (!isProcessing) {
+            updateFeedback(
+              "feedback-neutral",
+              "fa-arrows-alt",
+              "Please move closer"
+            );
+          }
+        } else if (!isProcessing) {
+          const message =
+            detections.length > 1 ? "Multiple faces detected" : "Ready to scan";
+          const icon = detections.length > 1 ? "fa-users" : "fa-face-smile";
+          updateFeedback("feedback-neutral", icon, message);
+        }
+      }
+
+      async function loadModels() {
+        try {
+          await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+          modelsLoaded = true;
+          await checkClassStatus();
+        } catch (err) {
+          updateFeedback(
+            "feedback-error",
+            "fa-exclamation-triangle",
+            "Failed to load AI models"
+          );
+        }
+      }
+
+      function initApp() {
+        loadModels();
+        getDevices();
+        startCameraBtn.onclick = startVideo;
+
+        video.addEventListener("playing", () => {
+          updateFeedback(
+            "feedback-neutral",
+            "fa-face-smile",
+            "Camera active. Ready to scan."
+          );
+          if (!detectionInterval) {
+            detectionInterval = setInterval(detectAndProcessFace, 500);
+          }
+        });
+      }
+
+      initApp();
+    </script>
+  </body>
+</html>

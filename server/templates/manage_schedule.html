@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Schedule - DUT Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #005A9C;
+            --background-color: #f4f7f6;
+            --card-background-color: #ffffff;
+            --sidebar-background-color: #ffffff;
+            --text-color: #333333;
+            --label-color: #555555;
+            --input-border-color: #dddddd;
+            --button-hover-color: #004a80;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+            --border-radius: 8px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            display: flex;
+            color: var(--label-color);
+        }
+        
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-background-color);
+            padding: 1.5rem;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--input-border-color);
+        }
+        
+        .sidebar-logo {
+            max-width: 70px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-brand {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+        
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: var(--label-color);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .nav-item a:hover {
+            background-color: #eaf2fa;
+            color: var(--primary-color);
+        }
+        
+        .nav-item a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-item a i {
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #fbebee;
+            color: var(--danger-color);
+            border: none;
+            width: 100%;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #f8d7da;
+        }
+        
+        /* --- Main Content --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .card {
+            background-color: var(--card-background-color);
+            padding: 1.75rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            margin-top: 0.25rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+        
+        .form-select, .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+        }
+
+        .form-select:focus, .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 12px 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--button-hover-color);
+        }
+
+        .status-message {
+            margin-top: 1.25rem;
+            font-weight: 500;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            display: none;
+            border-left: 5px solid;
+        }
+        
+        .status-message.success {
+            background-color: #e9f7ec;
+            color: var(--success-color);
+            border-color: var(--success-color);
+            display: block;
+        }
+        
+        .status-message.error {
+            background-color: #fcebec;
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+            display: block;
+        }
+
+        /* Improved Table for Schedule */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .schedule-table th, .schedule-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .schedule-table th {
+            font-weight: 600;
+            background-color: #f9fafb;
+        }
+        .schedule-table td:first-child {
+            color: var(--text-color);
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="/static/images/DUTLOGO.jpeg" alt="DUT Logo" class="sidebar-logo">
+            <a href="/dashboard" class="sidebar-brand">DUT Attendance</a>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="/dashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+            </li>
+            <li class="nav-item">
+                <a href="/manage-schedule" class="active"><i class="fas fa-calendar-alt"></i><span>Manage Schedule</span></a>
+            </li>
+            <li class="nav-item">
+                <a href="/manage-campaigns"><i class="fas fa-gift"></i><span>Attend & Win</span></a>
+            </li>
+        </ul>
+        <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1 class="page-title">Manage Lecture Schedule</h1>
+        </header>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-upload"></i> Upload Semester Plan</h3>
+            <p>Upload your semester lecture guide (.txt or .md). The system will parse this file to populate the schedule for the selected module.</p>
+            <form id="upload-guide-form">
+                <div class="form-group">
+                    <label for="module-select" class="form-label">Select Module:</label>
+                    <select class="form-select" id="module-select" name="module_id" required>
+                        <option>Loading modules...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="lecture-guide-file" class="form-label">Upload Guide File:</label>
+                    <input class="form-control" type="file" id="lecture-guide-file" name="lecture_guide" accept=".txt, .md" required>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload Schedule</button>
+            </form>
+            <div id="upload-status" class="status-message"></div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-list-alt"></i> Current Module Schedule</h3>
+            <div id="schedule-display">
+                <p>Select a module from the dropdown above to view its schedule.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- Your existing JavaScript logic remains unchanged ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const SUPABASE_URL = '{{ supabase_url }}';
+            const SUPABASE_ANON_KEY = '{{ supabase_key }}';
+            let supabaseClient;
+
+            {% raw %}
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes('{{')) {
+                console.error("Supabase keys not passed to template properly.");
+                const statusDiv = document.getElementById('upload-status');
+                statusDiv.textContent = 'Configuration Error: Could not connect to the database.';
+                statusDiv.className = 'status-message error';
+                return;
+            }
+            {% endraw %}
+
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const moduleSelect = document.getElementById('module-select');
+            const scheduleDisplay = document.getElementById('schedule-display');
+            const uploadForm = document.getElementById('upload-guide-form');
+            const uploadStatus = document.getElementById('upload-status');
+
+            async function initializePage(user) {
+                const { data, error } = await supabaseClient
+                    .from('modules')
+                    .select('id, module_name, module_code')
+                    .eq('lecturer_id', user.id);
+
+                if (error) {
+                    console.error('Error fetching modules:', error);
+                    moduleSelect.innerHTML = `<option disabled selected>Error: ${error.message}</option>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    moduleSelect.innerHTML = '<option disabled selected>No modules have been assigned to you.</option>';
+                    return;
+                }
+                
+                moduleSelect.innerHTML = '<option value="" disabled selected>Select a module</option>';
+                data.forEach(module => {
+                    const option = document.createElement('option');
+                    option.value = module.id;
+                    option.textContent = `${module.module_code} - ${module.module_name}`;
+                    moduleSelect.appendChild(option);
+                });
+            }
+
+            async function fetchAndDisplaySchedule(moduleId) {
+                scheduleDisplay.innerHTML = '<p>Loading schedule...</p>';
+                const { data, error } = await supabaseClient
+                    .from('lecture_schedules')
+                    .select('lecture_date, planned_topic')
+                    .eq('module_id', moduleId)
+                    .order('lecture_date', { ascending: true });
+
+                if (error) {
+                    scheduleDisplay.innerHTML = `<p style="color: red;">Error loading schedule: ${error.message}</p>`;
+                    return;
+                }
+
+                if (data.length === 0) {
+                    scheduleDisplay.innerHTML = '<p>No schedule has been uploaded for this module yet.</p>';
+                    return;
+                }
+
+                let scheduleHtml = `
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Topic</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                data.forEach(item => {
+                    const dateParts = item.lecture_date.split('-');
+                    const displayDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).toLocaleDateString('en-ZA', { 
+                        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' 
+                    });
+                    scheduleHtml += `<tr><td>${item.planned_topic}</td><td>${displayDate}</td></tr>`;
+                });
+                scheduleHtml += '</tbody></table>';
+                scheduleDisplay.innerHTML = scheduleHtml;
+            }
+
+            moduleSelect.addEventListener('change', () => {
+                uploadStatus.style.display = 'none';
+                uploadStatus.textContent = '';
+                if (moduleSelect.value) {
+                    fetchAndDisplaySchedule(moduleSelect.value);
+                }
+            });
+            
+            uploadForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                uploadStatus.textContent = 'Uploading...';
+                uploadStatus.className = 'status-message';
+
+
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+                if (sessionError || !session) {
+                    uploadStatus.textContent = 'Error: You are not logged in. Please refresh and try again.';
+                    uploadStatus.className = 'status-message error';
+                    return;
+                }
+
+                const headers = {
+                    'Authorization': `Bearer ${session.access_token}`
+                };
+                
+                const formData = new FormData(uploadForm);
+                
+                try {
+                    const response = await fetch('/upload-guide', {
+                        method: 'POST',
+                        headers: headers, 
+                        body: formData,
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        uploadStatus.textContent = result.message;
+                        uploadStatus.className = 'status-message success';
+                        fetchAndDisplaySchedule(moduleSelect.value); 
+                    } else {
+                        uploadStatus.textContent = 'Error: ' + result.error;
+                        uploadStatus.className = 'status-message error';
+                    }
+                } catch (error) {
+                    uploadStatus.textContent = 'A network error occurred. Please try again.';
+                    uploadStatus.className = 'status-message error';
+                }
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await supabaseClient.auth.signOut();
+            });
+
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+                    window.location.href = '/login';
+                } else if (session?.user) {
+                    initializePage(session.user);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

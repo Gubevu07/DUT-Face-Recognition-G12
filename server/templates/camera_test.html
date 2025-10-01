@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Camera Test</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+        video { width: 640px; height: 480px; border: 2px solid black; background-color: #333; }
+        #log { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Camera Test Page</h1>
+    <video id="video" autoplay playsinline muted></video>
+    <div id="log">Attempting to start camera...</div>
+
+    <script>
+        const video = document.getElementById('video');
+        const log = document.getElementById('log');
+
+        async function startCamera() {
+            try {
+                log.textContent = 'Requesting camera access...';
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' }
+                });
+                
+                log.textContent = 'Camera access granted. Attaching stream...';
+                video.srcObject = stream;
+
+                // This event listener tells us if the video actually starts playing
+                video.onplaying = () => {
+                    log.textContent = 'SUCCESS: Video is playing!';
+                    log.style.color = 'green';
+                };
+
+            } catch (err) {
+                console.error("Camera Error:", err);
+                log.textContent = `ERROR: ${err.name} - ${err.message}`;
+                log.style.color = 'red';
+            }
+        }
+
+        startCamera();
+    </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Response - DUT Attendance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #005A9C;
+            --background-color: #f4f7f6;
+            --card-background-color: #ffffff;
+            --text-color: #333333;
+            --label-color: #555555;
+            --input-border-color: #dddddd;
+            --button-hover-color: #004a80;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+            --border-radius: 8px;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-color); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; color: var(--primary-color); }
+        .logo { height: 50px; }
+        .header-title { font-size: 24px; font-weight: 700; }
+        .main-card { background-color: var(--card-background-color); border-radius: var(--border-radius); box-shadow: var(--card-shadow); width: 100%; max-width: 700px; padding: 2.5rem; }
+        .card-title { font-size: 1.5rem; font-weight: 600; color: var(--primary-color); margin-top: 0; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-color); }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--input-border-color); border-radius: var(--border-radius); font-size: 1rem; }
+        .btn { padding: 12px 1.5rem; border-radius: var(--border-radius); cursor: pointer; font-size: 1rem; font-weight: 600; border: none; background: var(--primary-color); color: white; transition: background-color 0.3s; }
+        .btn:hover:not(:disabled) { background: var(--button-hover-color); }
+        .btn:disabled { background-color: #a0c3e2; cursor: not-allowed; }
+        #status-message { margin-top: 1.5rem; text-align: center; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/static/images/DUTLOGO.jpeg" alt="DUT Logo" class="logo">
+        <div class="header-title">DUT Attendance System</div>
+    </div>
+
+    <div class="main-card" id="main-card">
+        <h1 id="campaign-title" class="card-title">Loading Campaign...</h1>
+        <p id="campaign-incentive" style="margin-bottom: 2rem;"></p>
+        <form id="response-form"></form>
+        <button type="submit" form="response-form" id="submit-btn" class="btn" disabled>Submit Response</button>
+        <p id="status-message"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const form = document.getElementById('response-form');
+            const titleEl = document.getElementById('campaign-title');
+            const incentiveEl = document.getElementById('campaign-incentive');
+            const submitBtn = document.getElementById('submit-btn');
+            const statusMsg = document.getElementById('status-message');
+            const mainCard = document.getElementById('main-card');
+
+            // 1. Get the token from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            if (!token) {
+                mainCard.innerHTML = '<h1>Error</h1><p>This link is invalid or has expired. Please use the link provided in your email.</p>';
+                return;
+            }
+
+            try {
+                // 2. Fetch campaign details using the token
+                const response = await fetch('/api/get-campaign-for-student', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Could not load campaign.');
+                }
+
+                const campaign = result.campaign;
+                titleEl.textContent = campaign.title;
+                incentiveEl.textContent = `Incentive: ${campaign.incentive}`;
+
+                // 3. Dynamically build the form from the questions
+                let questionHtml = '';
+                campaign.campaign_questions.forEach((q, index) => {
+                    questionHtml += `<div class="form-group">
+                        <label class="form-label" for="q-${index}">${index + 1}. ${q.question_text}</label>`;
+                    
+                    if (q.question_type === 'open_text') {
+                        questionHtml += `<textarea id="q-${index}" name="${q.id}" class="form-control" rows="4" required></textarea>`;
+                    } else if (q.question_type === 'multiple_choice') {
+                        q.options.forEach((opt, optIndex) => {
+                            questionHtml += `<div><input type="radio" id="q-${index}-opt-${optIndex}" name="${q.id}" value="${opt}" required>
+                            <label for="q-${index}-opt-${optIndex}">${opt}</label></div>`;
+                        });
+                    }
+                    questionHtml += '</div>';
+                });
+                form.innerHTML = questionHtml;
+                submitBtn.disabled = false;
+
+            } catch (error) {
+                mainCard.innerHTML = `<h1>Error</h1><p>${error.message}</p>`;
+            }
+
+            // 4. Handle form submission
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+
+                const formData = new FormData(form);
+                const responseData = Object.fromEntries(formData.entries());
+
+                try {
+                    const submitResponse = await fetch('/api/submit-campaign-response', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token, responses: responseData })
+                    });
+                    const submitResult = await submitResponse.json();
+
+                    if (!submitResponse.ok) {
+                        throw new Error(submitResult.error || 'An unknown error occurred.');
+                    }
+
+                    mainCard.innerHTML = `<h1>Thank You!</h1><p>${submitResult.message}</p>`;
+
+                } catch (error) {
+                    statusMsg.textContent = `Error: ${error.message}`;
+                    statusMsg.style.color = 'red';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Response';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
