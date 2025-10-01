@@ -40,7 +40,7 @@ Markdown==3.8.2
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
 mdurl==0.1.2
-ml-dtypes==0.3.2
+#ml-dtypes==0.3.2
 mtcnn==1.0.0
 namex==0.1.0
 numpy==1.26.4
@@ -92,6 +92,7 @@ wheel==0.45.1
 wrapt==1.17.2
 
 #gunicorn==21.2.0
+
 
 
 
